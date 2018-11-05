@@ -1,4 +1,4 @@
-﻿-- SetupConfig: { }
+-- SetupConfig: { }
 --
 -- Adds an email to a user or a group and/or sets whether it is the primary one.
 -- Optionally sets the ValTime to sysutcdatetime() or '0001-01-01'.
@@ -34,7 +34,7 @@ begin
 		as source on source.ActorId = target.ActorId and source.EMail = target.EMail
 		when matched then update set IsPrimary = @IsPrimary, 
 									 ValTime = case when @Validate is null then target.ValTime 
-													when @Validate = 0 then '0001-01-0'
+													when @Validate = 0 then '0001-01-01'
 													else sysutcdatetime() 
 												end
 		when not matched by target then insert( ActorId, EMail, IsPrimary, ValTime ) 
