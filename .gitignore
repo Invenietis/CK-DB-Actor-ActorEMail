@@ -236,3 +236,8 @@ Tests/Logs/
 CKSetup-WorkingDir/
 Logs/
 TestResult*.xml
+
+Tests/**/TestResult*.xml
+CodeCakeBuilder/UnitTestsDone.*.txt
+Tests/**/Logs/
+Tests/**/CKSetup-WorkingDir/
