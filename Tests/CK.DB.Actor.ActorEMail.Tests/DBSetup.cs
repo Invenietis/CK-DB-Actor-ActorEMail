@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
 
-namespace CK.DB.Actor.ActorEMail.Tests
+namespace DBSetup
 {
     [TestFixture]
     public class DBSetup : CK.DB.Tests.DBSetup
