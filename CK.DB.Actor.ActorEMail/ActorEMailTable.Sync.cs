@@ -7,15 +7,25 @@ namespace CK.DB.Actor.ActorEMail
     {
         /// <summary>
         /// Adds an email to a user or a group and/or sets whether it is the primary one.
+        /// By default <paramref name="avoidAmbiguousEMail"/>> is true so that if the mail already exists for
+        /// another user, nothing is done and the actor identifier that is bound to the existing EMail is returned.
+        /// When avoidAmbiguousEMail is false, the behavior depends on the unicity of the EMail column: if the unique key exists (the default),
+        /// a SqlException duplicate key error will be raised but if no unique key is defined (ie. the UK_CK_tActorEMail_EMail constraint has
+        /// been dropped), the same email can be associated to different users.
         /// </summary>
         /// <param name="ctx">The call context to use.</param>
         /// <param name="actorId">The acting actor identifier.</param>
         /// <param name="userOrGroupId">The user or group identifier for which an email should be added or configured as the primary one.</param>
         /// <param name="email">The email.</param>
         /// <param name="isPrimary">True to set the email as the user or group's primary one.</param>
-        /// <param name="validate">Optionaly sets the ValTime of the email: true to set it to sysUTCDateTime(), false to reset it to '0001-01-01'.</param>
+        /// <param name="validate">Optionaly sets the ValTime of the email: true to set it to sysUtcDateTime(), false to reset it to '0001-01-01'.</param>
+        /// <param name="avoidAmbiguousEMail">False to skip EMail unicity check: always attempts to add the EMail to the actor.</param>
+        /// <returns>
+        /// The <paramref name="userOrGroupId"/> or, if <paramref name="avoidAmbiguousEMail"/> is true (the default), the identifier that
+        /// is already associated to the mail.
+        /// </returns>
         [SqlProcedure( "sActorEMailAdd" )]
-        public abstract void AddEMail( ISqlCallContext ctx, int actorId, int userOrGroupId, string email, bool isPrimary, bool? validate = null );
+        public abstract int AddEMail( ISqlCallContext ctx, int actorId, int userOrGroupId, string email, bool isPrimary, bool? validate = null, bool avoidAmbiguousEMail = true );
 
         /// <summary>
         /// Removes an email from the user or group's emails (removing an unexisting email is silently ignored).
