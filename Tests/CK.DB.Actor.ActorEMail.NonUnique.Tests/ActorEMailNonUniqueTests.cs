@@ -21,8 +21,13 @@ namespace CK.DB.ActorEMail.NonUnique.Tests
             {
                 bool isUnique = mails.Database.ExecuteScalar<bool>( "select [ActorEMailUnique] from CKCore.tSystem" );
                 isUnique.Should().BeFalse();
+
+                bool isUniqueConstraintDropped = mails.Database.ExecuteScalar( "select object_id('CK.UK_CK_tActorEMail_EMail', 'UQ')" ) == DBNull.Value;
+                isUniqueConstraintDropped.Should().BeTrue();
+
             }
         }
+
         [Test]
         public void when_removing_the_primary_email_another_one_is_elected_even_if_they_are_all_not_validated()
         {
