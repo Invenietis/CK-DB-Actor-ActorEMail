@@ -14,6 +14,8 @@ create table CK.tActorEMail
 -- be associated to different actors: by deleting this unique constraint, it is possible to support
 -- such scenarii where a mail can be shared by different actors.
 -- Here, we restrict this: by default a mail is bound to one and only one user.
-alter table CK.tActorEMail add constraint UK_CK_tActorEMail_EMail unique nonclustered (EMail);
-
+if  COL_LENGTH('CKCore.tSystem', 'ActorEMailUnique') is null or (select ActorEMailUnique from CKCore.tSystem ) = 1
+begin
+    alter table CK.tActorEMail add constraint UK_CK_tActorEMail_EMail unique nonclustered (EMail);
+end
 --[endscript]
