@@ -6,7 +6,7 @@ namespace CK.DB.Actor.ActorEMail
     /// Brings <see cref="ActorEMailTable"/> to support emails' user.
     /// </summary>
     [SqlPackage( Schema = "CK", ResourcePath = "Res" )]
-    [Versions( "1.0.0" )]
+    [Versions( "1.0.0, 2.0.1" )]
     public class Package : SqlPackage
     {
         void StObjConstruct( Actor.Package actorPackage )

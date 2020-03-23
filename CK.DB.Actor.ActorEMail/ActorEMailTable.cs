@@ -14,7 +14,7 @@ namespace CK.DB.Actor.ActorEMail
     /// possible to support such scenarii where the same mail can be shared by different actors.
     ///  </remarks>
     [SqlTable( "tActorEMail", Package = typeof( Package ) )]
-    [Versions( "1.0.0,2.0.0" )]
+    [Versions( "1.0.0,2.0.1" )]
     [SqlObjectItem( "transform:sUserDestroy, transform:sGroupDestroy, transform:vUser, transform:vGroup" )]
     public abstract partial class ActorEMailTable : SqlTable
     {

@@ -135,7 +135,6 @@ namespace CK.DB.Actor.ActorEMail.Tests
                     ctx[mails.Database].ExecuteScalar( new SqlCommand( $"select count(*) from CK.tActorEMail where ActorId={uId2}" ) ).Should().Be( 2 );
                     ctx[mails.Database].ExecuteScalar( new SqlCommand( $"select count(*) from CK.tActorEMail where EMail='{uniqueMail}'" ) ).Should().Be( 2 );
                 }
-
             }
         }
 
