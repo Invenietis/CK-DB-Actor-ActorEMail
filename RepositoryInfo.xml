@@ -1,5 +1,4 @@
 ﻿<RepositoryInfo>
-  <StartingVersionForCSemVer>3.0.2-rc</StartingVersionForCSemVer>
 
   <SimpleGitVersion StartingVersion="3.0.2-rc">
     <Branches>
