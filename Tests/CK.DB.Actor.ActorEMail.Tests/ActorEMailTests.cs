@@ -3,6 +3,7 @@ using CK.SqlServer;
 using FluentAssertions;
 using NUnit.Framework;
 using System;
+using System.Data.SqlClient;
 using static CK.Testing.DBSetupTestHelper;
 
 namespace CK.DB.Actor.ActorEMail.Tests
@@ -14,7 +15,7 @@ namespace CK.DB.Actor.ActorEMail.Tests
         public void adding_and_removing_one_mail_to_System()
         {
             var mails = TestHelper.StObjMap.StObjs.Obtain<ActorEMailTable>();
-            using( var ctx = new SqlStandardCallContext() )
+            using( var ctx = new SqlStandardCallContext( TestHelper.Monitor ) )
             {
                 mails.Database.ExecuteScalar( "select PrimaryEMail from CK.vUser where UserId=1" )
                         .Should().Be( DBNull.Value );
@@ -34,7 +35,7 @@ namespace CK.DB.Actor.ActorEMail.Tests
         {
             var group = TestHelper.StObjMap.StObjs.Obtain<GroupTable>();
             var mails = TestHelper.StObjMap.StObjs.Obtain<ActorEMailTable>();
-            using( var ctx = new SqlStandardCallContext() )
+            using( var ctx = new SqlStandardCallContext( TestHelper.Monitor ) )
             {
                 var gId = group.CreateGroup( ctx, 1 );
                 mails.AddEMail( ctx, 1, gId, "mail@address.com", false );
@@ -63,7 +64,7 @@ namespace CK.DB.Actor.ActorEMail.Tests
         {
             var user = TestHelper.StObjMap.StObjs.Obtain<UserTable>();
             var mails = TestHelper.StObjMap.StObjs.Obtain<ActorEMailTable>();
-            using( var ctx = new SqlStandardCallContext() )
+            using( var ctx = new SqlStandardCallContext( TestHelper.Monitor ) )
             {
                 var uId = user.CreateUser( ctx, 1, Guid.NewGuid().ToString() );
                 mails.AddEMail( ctx, 1, uId, "1@a.com", false );
@@ -81,11 +82,68 @@ namespace CK.DB.Actor.ActorEMail.Tests
         }
 
         [Test]
+        public void EMail_unicity_can_be_dropped_if_needed()
+        {
+            var user = TestHelper.StObjMap.StObjs.Obtain<UserTable>();
+            var mails = TestHelper.StObjMap.StObjs.Obtain<ActorEMailTable>();
+            using( var ctx = new SqlStandardCallContext( TestHelper.Monitor ) )
+            {
+                // We need a connection that stays Opened because we are playing with begin tran/rollback accross queries.
+                ctx[mails.Database].PreOpen();
+
+                var uniqueMail = $"{Guid.NewGuid().ToString("N")}.sh@ared.com";
+                var uId1 = user.CreateUser( ctx, 1, Guid.NewGuid().ToString() );
+                mails.AddEMail( ctx, 1, uId1, "The-1-" + uniqueMail, isPrimary: false ).Should().Be( uId1, "The 1 is the primary mail." );
+                mails.AddEMail( ctx, 1, uId1, uniqueMail, false ).Should().Be( uId1 );
+                mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ) .Should().Be( "The-1-" + uniqueMail );
+                mails.AddEMail( ctx, 1, uId1, uniqueMail, true ).Should().Be( uId1, "Change the primary!" );
+                mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ).Should().Be( uniqueMail );
+                mails.Database.ExecuteScalar<int>( $"select count(*) from CK.tActorEMail where ActorId={uId1}" ).Should().Be( 2 );
+
+                var uId2 = user.CreateUser( ctx, 1, Guid.NewGuid().ToString() );
+                mails.AddEMail( ctx, 1, uId2, "The-2-" + uniqueMail, false ).Should().Be( uId2, "The 2 is the primary mail." );
+                mails.AddEMail( ctx, 1, uId2, uniqueMail, true ).Should().Be( uId1, "Another user => the first user id is returned and nothing is done." );
+                // Nothing changed for both user.
+                mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ).Should().Be( uniqueMail );
+                mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId2}" ).Should().Be( "The-2-" + uniqueMail );
+                mails.Database.ExecuteScalar<int>( $"select count(*) from CK.tActorEMail where ActorId={uId2}" ).Should().Be( 1 );
+
+                // Calling with avoidAmbiguousEMail = false: behavior depends on UK_CK_tActorEMail_EMail constraint.
+                bool isUnique = mails.Database.ExecuteScalar( "select object_id('CK.UK_CK_tActorEMail_EMail', 'UQ')" ) != DBNull.Value;
+                if( isUnique )
+                {
+                    TestHelper.Monitor.Info( "CK.UK_CK_tActorEMail_EMail constraint found: EMail cannot be shared among users." );
+                    // We cannot use the Database helpers here since the use a brand new SqlConnection each time.
+                    // We must use the SqlCallContext.
+                    mails.Invoking( m => m.AddEMail( ctx, 1, uId2, uniqueMail, true, avoidAmbiguousEMail:false ) ).Should().Throw<SqlDetailedException>();
+                    using( Util.CreateDisposableAction( () => ctx[mails.Database].ExecuteNonQuery( new SqlCommand( "rollback;" ) ) ) )
+                    {
+                        ctx[mails.Database].ExecuteNonQuery( new SqlCommand( "begin tran; alter table CK.tActorEMail drop constraint UK_CK_tActorEMail_EMail;" ) );
+                        TestWithoutUnicityConstraint( mails, ctx, uniqueMail, uId2 );
+                    }
+                }
+                else
+                {
+                    TestHelper.Monitor.Info( "CK.UK_CK_tActorEMail_EMail constraint NOT found: EMail can be shared among users." );
+                    TestWithoutUnicityConstraint( mails, ctx, uniqueMail, uId2 );
+                    // We cannot test the unicity behavior here since applying the constraint will fail if current multiple emails exist.
+                }
+
+                static void TestWithoutUnicityConstraint( ActorEMailTable mails, SqlStandardCallContext ctx, string uniqueMail, int uId2 )
+                {
+                    mails.AddEMail( ctx, 1, uId2, uniqueMail, true, avoidAmbiguousEMail: false ).Should().Be( uId2 );
+                    ctx[mails.Database].ExecuteScalar( new SqlCommand( $"select count(*) from CK.tActorEMail where ActorId={uId2}" ) ).Should().Be( 2 );
+                    ctx[mails.Database].ExecuteScalar( new SqlCommand( $"select count(*) from CK.tActorEMail where EMail='{uniqueMail}'" ) ).Should().Be( 2 );
+                }
+            }
+        }
+
+        [Test]
         public void when_removing_the_primary_email_the_most_recently_validated_is_elected()
         {
             var user = TestHelper.StObjMap.StObjs.Obtain<UserTable>();
             var mails = TestHelper.StObjMap.StObjs.Obtain<ActorEMailTable>();
-            using( var ctx = new SqlStandardCallContext() )
+            using( var ctx = new SqlStandardCallContext( TestHelper.Monitor ) )
             {
                 var uId = user.CreateUser( ctx, 1, Guid.NewGuid().ToString() );
                 for( int i = 0; i < 10; i++ )

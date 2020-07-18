@@ -6,14 +6,25 @@ namespace CK.DB.Actor.ActorEMail
 {
     /// <summary>
     /// Holds mails (among them one is the primary email) for a user or a group.
+    /// By default, the UK_CK_tActorEMail_EMail unique constraint enforces the fact that no EMail can be shared among actors. 
     /// </summary>
+    /// <remarks>
+    /// This CK.DB.Actor.ActorEMail package has been designed so that the same EMail address MAY
+    /// be associated to different actors: by deleting the UK_CK_tActorEMail_EMail unique constraint, it is
+    /// possible to support such scenarii where the same mail can be shared by different actors.
+    ///  </remarks>
     [SqlTable( "tActorEMail", Package = typeof( Package ) )]
-    [Versions( "1.0.0" )]
+    [Versions( "1.0.0,2.0.1" )]
     [SqlObjectItem( "transform:sUserDestroy, transform:sGroupDestroy, transform:vUser, transform:vGroup" )]
     public abstract partial class ActorEMailTable : SqlTable
     {
         /// <summary>
         /// Adds an email to a user or a group and/or sets whether it is the primary one.
+        /// By default <paramref name="avoidAmbiguousEMail"/>> is true so that if the mail already exists for
+        /// another user, nothing is done and the actor identifier that is bound to the existing EMail is returned.
+        /// When avoidAmbiguousEMail is false, the behavior depends on the unicity of the EMail column: if the unique key exists (the default),
+        /// a SqlException duplicate key error will be raised but if no unique key is defined (ie. the UK_CK_tActorEMail_EMail constraint has
+        /// been dropped), the same email can be associated to different users.
         /// </summary>
         /// <param name="ctx">The call context to use.</param>
         /// <param name="actorId">The acting actor identifier.</param>
@@ -21,9 +32,13 @@ namespace CK.DB.Actor.ActorEMail
         /// <param name="email">The email.</param>
         /// <param name="isPrimary">True to set the email as the user or group's primary one.</param>
         /// <param name="validate">Optionaly sets the ValTime of the email: true to set it to sysUtcDateTime(), false to reset it to '0001-01-01'.</param>
-        /// <returns>The awaitable.</returns>
+        /// <param name="avoidAmbiguousEMail">False to skip EMail unicity check: always attempts to add the EMail to the actor.</param>
+        /// <returns>
+        /// The <paramref name="userOrGroupId"/> or, if <paramref name="avoidAmbiguousEMail"/> is true (the default), the identifier that
+        /// is already associated to the mail.
+        /// </returns>
         [SqlProcedure( "sActorEMailAdd" )]
-        public abstract Task AddEMailAsync( ISqlCallContext ctx, int actorId, int userOrGroupId, string email, bool isPrimary, bool? validate = null );
+        public abstract Task<int> AddEMailAsync( ISqlCallContext ctx, int actorId, int userOrGroupId, string email, bool isPrimary, bool? validate = null, bool avoidAmbiguousEMail = true );
 
         /// <summary>
         /// Removes an email from the user or group's emails (removing an unexisting email is silently ignored).

@@ -1,21 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\Common\Shared.props" />
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Description>This package defines tActorEMail with its EMail nvarchar( 255 ) collate Latin1_General_100_CI_AS not null, IsPrimary bit and ValTime datetime2(2) columns. The unicity of the EMail column can be dropped if necessary.</Description>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="CK.DB.Actor" Version="$(CKDBVersion)" />
-  </ItemGroup>
+    
   <ItemGroup>
     <EmbeddedResource Include="Res\*.sql" />
     <EmbeddedResource Include="Res\*.tql" />
   </ItemGroup>
+  
   <ItemGroup>
-    <None Remove="Res\CK.DB.Actor.ActorEMail.Package.Init.1.0.0.to.2.0.1.sql" />
-    <None Remove="Res\CK.DB.Actor.ActorEMail.Package.Init.2.0.0.to.2.0.1.sql" />
-    <None Remove="Res\CK.DB.Actor.ActorEMail.Package.Init.2.0.1.sql" />
-    <None Remove="Res\Model.CK.ActorEMailTable.Install.2.0.0.to.2.0.1.sql" />
+    <ProjectReference Include="..\CK.DB.Actor.ActorEMail\CK.DB.Actor.ActorEMail.csproj" />
   </ItemGroup>
+
 </Project>
