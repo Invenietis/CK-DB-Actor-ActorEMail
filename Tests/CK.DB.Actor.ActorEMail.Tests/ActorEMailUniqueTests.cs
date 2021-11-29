@@ -3,7 +3,7 @@ using CK.SqlServer;
 using FluentAssertions;
 using NUnit.Framework;
 using System;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using static CK.Testing.DBSetupTestHelper;
 
 namespace CK.DB.Actor.ActorEMail.Tests
