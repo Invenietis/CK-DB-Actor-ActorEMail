@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\Common\Shared.props" />
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
+    <TargetFramework>net6.0</TargetFramework>
     <LangVersion>8.0</LangVersion>
     <Description>This package contains tests for CK.DB.Actor.ActorEMail (uses CK.DB.Tests.NUnit) with Unique constraint dropped.</Description>
     <IsPackable>True</IsPackable>
@@ -10,10 +9,10 @@
     <Compile Include="..\CK.DB.Actor.ActorEMail.Tests\ActorEMailTests.cs" Link="ActorEMailTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CK.DB.Actor.Tests" Version="$(CKDBVersion)" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
-    <PackageReference Include="NUnit" Version="3.12.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
+    <PackageReference Include="CK.DB.Actor.Tests" Version="14.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CK.DB.Actor.ActorEMail.NonUnique\CK.DB.Actor.ActorEMail.NonUnique.csproj" />
