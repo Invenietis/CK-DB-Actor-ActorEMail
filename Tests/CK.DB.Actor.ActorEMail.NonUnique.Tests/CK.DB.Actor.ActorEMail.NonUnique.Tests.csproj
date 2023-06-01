@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>8.0</LangVersion>
     <Description>This package contains tests for CK.DB.Actor.ActorEMail (uses CK.DB.Tests.NUnit) with Unique constraint dropped.</Description>
     <IsPackable>True</IsPackable>
   </PropertyGroup>
