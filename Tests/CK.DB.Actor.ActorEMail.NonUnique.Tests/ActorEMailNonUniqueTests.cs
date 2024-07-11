@@ -4,7 +4,7 @@ using CK.Core;
 using CK.SqlServer;
 using FluentAssertions;
 using NUnit.Framework;
-using static CK.Testing.DBSetupTestHelper;
+using static CK.Testing.MonitorTestHelper;
 using System;
 
 namespace CK.DB.ActorEMail.NonUnique.Tests
@@ -15,8 +15,8 @@ namespace CK.DB.ActorEMail.NonUnique.Tests
         [Test]
         public void EMail_unicity_is_tested_from_CKCore_TSystem()
         {
-            var user = TestHelper.StObjMap.StObjs.Obtain<UserTable>();
-            var mails = TestHelper.StObjMap.StObjs.Obtain<ActorEMailTable>();
+            var user = SharedEngine.Map.StObjs.Obtain<UserTable>();
+            var mails = SharedEngine.Map.StObjs.Obtain<ActorEMailTable>();
             using( var ctx = new SqlStandardCallContext( TestHelper.Monitor ) )
             {
                 bool isUnique = mails.Database.ExecuteScalar<bool>( "select [ActorEMailUnique] from CKCore.tSystem" );
@@ -31,8 +31,8 @@ namespace CK.DB.ActorEMail.NonUnique.Tests
         [Test]
         public void when_removing_the_primary_email_another_one_is_elected_even_if_they_are_all_not_validated()
         {
-            var user = TestHelper.StObjMap.StObjs.Obtain<UserTable>();
-            var mails = TestHelper.StObjMap.StObjs.Obtain<ActorEMailTable>();
+            var user = SharedEngine.Map.StObjs.Obtain<UserTable>();
+            var mails = SharedEngine.Map.StObjs.Obtain<ActorEMailTable>();
             using( var ctx = new SqlStandardCallContext( TestHelper.Monitor ) )
             {
                 var uId = user.CreateUser( ctx, 1, Guid.NewGuid().ToString() );
