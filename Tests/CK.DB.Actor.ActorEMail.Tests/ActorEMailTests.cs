@@ -4,6 +4,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using System;
 using Microsoft.Data.SqlClient;
+using CK.Testing;
 using static CK.Testing.MonitorTestHelper;
 
 namespace CK.DB.Actor.ActorEMail.Tests
@@ -91,7 +92,7 @@ namespace CK.DB.Actor.ActorEMail.Tests
                 // We need a connection that stays Opened because we are playing with begin tran/rollback accross queries.
                 ctx[mails.Database].PreOpen();
 
-                var uniqueMail = $"{Guid.NewGuid().ToString("N")}.sh@ared.com";
+                var uniqueMail = $"{Guid.NewGuid():N}.sh@ared.com";
                 var uId1 = user.CreateUser( ctx, 1, Guid.NewGuid().ToString() );
                 mails.AddEMail( ctx, 1, uId1, "The-1-" + uniqueMail, isPrimary: false ).Should().Be( uId1, "The 1 is the primary mail." );
                 mails.AddEMail( ctx, 1, uId1, uniqueMail, false ).Should().Be( uId1 );
