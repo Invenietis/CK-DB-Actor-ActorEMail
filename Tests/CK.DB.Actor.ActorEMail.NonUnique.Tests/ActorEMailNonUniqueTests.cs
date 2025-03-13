@@ -2,7 +2,7 @@ using CK.DB.Actor;
 using CK.DB.Actor.ActorEMail;
 using CK.Core;
 using CK.SqlServer;
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using CK.Testing;
@@ -20,10 +20,10 @@ public class ActorEMailNonUniqueTests
         using( var ctx = new SqlStandardCallContext( TestHelper.Monitor ) )
         {
             bool isUnique = mails.Database.ExecuteScalar<bool>( "select [ActorEMailUnique] from CKCore.tSystem" );
-            isUnique.Should().BeFalse();
+            isUnique.ShouldBeFalse();
 
             bool isUniqueConstraintDropped = mails.Database.ExecuteScalar( "select object_id('CK.UK_CK_tActorEMail_EMail', 'UQ')" ) == DBNull.Value;
-            isUniqueConstraintDropped.Should().BeTrue();
+            isUniqueConstraintDropped.ShouldBeTrue();
 
         }
     }
@@ -41,11 +41,11 @@ public class ActorEMailNonUniqueTests
             mails.AddEMail( ctx, 1, uId, "3@a.com", true );
             mails.AddEMail( ctx, 1, uId, "4@a.com", false );
             mails.Database.ExecuteScalar( $"select PrimaryEMail from CK.vUser where UserId={uId}" )
-                .Should().Be( "3@a.com" );
+                .ShouldBe( "3@a.com" );
 
             mails.RemoveEMail( ctx, 1, uId, "3@a.com" );
             mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId}" )
-                .Should().Match( m => m == "1@a.com" || m == "2@a.com" || m == "4@a.com" );
+                .ShouldBe( m => m == "1@a.com" || m == "2@a.com" || m == "4@a.com" );
             user.DestroyUser( ctx, 1, uId );
         }
     }

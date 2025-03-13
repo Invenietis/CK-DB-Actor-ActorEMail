@@ -1,7 +1,7 @@
 using CK.Core;
 using CK.SqlServer;
 using CK.Testing;
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using static CK.Testing.MonitorTestHelper;
 
@@ -17,7 +17,7 @@ public class ActorEMailUniqueTests
         using( var ctx = new SqlStandardCallContext( TestHelper.Monitor ) )
         {
             bool isUnique = mails.Database.ExecuteScalar<bool>( "select [ActorEMailUnique] from CKCore.tSystem" );
-            isUnique.Should().BeTrue();
+            isUnique.ShouldBeTrue();
         }
     }
 }

@@ -1,5 +1,4 @@
 using CK.Core;
-using CK.DB.Actor.ActorEMail;
 
 namespace CK.DB.Actor.ActorEMail.NonUnique;
 
