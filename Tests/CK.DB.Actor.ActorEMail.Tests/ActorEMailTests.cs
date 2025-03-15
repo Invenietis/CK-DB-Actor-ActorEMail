@@ -394,7 +394,7 @@ public class ActorEMailTests
 
             mails.RemoveEMail( ctx, 1, uId, "3@a.com" );
             mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId}" )
-                .ShouldBe( m => m == "1@a.com" || m == "2@a.com" || m == "4@a.com" );
+                .ShouldMatch( m => m == "1@a.com" || m == "2@a.com" || m == "4@a.com" );
             user.DestroyUser( ctx, 1, uId );
         }
     }
