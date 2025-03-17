@@ -1,6 +1,6 @@
 using CK.Core;
 using CK.SqlServer;
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using Microsoft.Data.SqlClient;
@@ -22,15 +22,15 @@ namespace CK.DB.Actor.ActorEMail.Tests
             using( var ctx = new SqlStandardCallContext( TestHelper.Monitor ) )
             {
                 mails.Database.ExecuteScalar( "select PrimaryEMail from CK.vUser where UserId=1" )
-                        .Should().Be( DBNull.Value );
+                        .ShouldBe( DBNull.Value );
 
                 mails.AddEMail( ctx, 1, 1, "god@heaven.com", false );
                 mails.Database.ExecuteScalar( "select PrimaryEMail from CK.vUser where UserId=1" )
-                        .Should().Be( "god@heaven.com" );
+                        .ShouldBe( "god@heaven.com" );
 
                 mails.RemoveEMail( ctx, 1, 1, "god@heaven.com" );
                 mails.Database.ExecuteScalar( "select PrimaryEMail from CK.vUser where UserId=1" )
-                        .Should().Be( DBNull.Value );
+                        .ShouldBe( DBNull.Value );
             }
         }
 
@@ -44,20 +44,20 @@ namespace CK.DB.Actor.ActorEMail.Tests
                 var gId = group.CreateGroup( ctx, 1 );
                 mails.AddEMail( ctx, 1, gId, "mail@address.com", false );
                 mails.Database.ExecuteScalar( $"select PrimaryEMail from CK.vGroup where GroupId={gId}" )
-                    .Should().Be( "mail@address.com" );
+                    .ShouldBe( "mail@address.com" );
 
                 mails.AddEMail( ctx, 1, gId, "Val-mail@address.com", false );
                 mails.Database.ExecuteScalar( $"select PrimaryEMail from CK.vGroup where GroupId={gId}" )
-                    .Should().Be( "mail@address.com" );
+                    .ShouldBe( "mail@address.com" );
 
                 mails.AddEMail( ctx, 1, gId, "bad-mail@address.com", false );
                 mails.Database.ExecuteScalar( $"select PrimaryEMail from CK.vGroup where GroupId={gId}" )
-                    .Should().Be( "mail@address.com" );
+                    .ShouldBe( "mail@address.com" );
 
 
                 mails.ValidateEMail( ctx, 1, gId, "Val-mail@address.com" );
                 mails.Database.ExecuteScalar( $"select PrimaryEMail from CK.vGroup where GroupId={gId}" )
-                    .Should().Be( "Val-mail@address.com" );
+                    .ShouldBe( "Val-mail@address.com" );
 
                 group.DestroyGroup( ctx, 1, gId );
             }
@@ -76,7 +76,7 @@ namespace CK.DB.Actor.ActorEMail.Tests
                 mails.AddEMail( ctx, 1, uId, "3@a.com", true );
                 mails.AddEMail( ctx, 1, uId, "4@a.com", false );
                 mails.Database.ExecuteScalar( $"select PrimaryEMail from CK.vUser where UserId={uId}" )
-                    .Should().Be( "3@a.com" );
+                    .ShouldBe( "3@a.com" );
 
                 mails.RemoveEMail( ctx, 1, uId, "3@a.com" );
                 mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId}" )
@@ -97,20 +97,20 @@ namespace CK.DB.Actor.ActorEMail.Tests
 
                 var uniqueMail = $"{Guid.NewGuid():N}.sh@ared.com";
                 var uId1 = user.CreateUser( ctx, 1, Guid.NewGuid().ToString() );
-                mails.AddEMail( ctx, 1, uId1, "The-1-" + uniqueMail, isPrimary: false ).Should().Be( uId1, "The 1 is the primary mail." );
-                mails.AddEMail( ctx, 1, uId1, uniqueMail, false ).Should().Be( uId1 );
-                mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ) .Should().Be( "The-1-" + uniqueMail );
-                mails.AddEMail( ctx, 1, uId1, uniqueMail, true ).Should().Be( uId1, "Change the primary!" );
-                mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ).Should().Be( uniqueMail );
-                mails.Database.ExecuteScalar<int>( $"select count(*) from CK.tActorEMail where ActorId={uId1}" ).Should().Be( 2 );
+                mails.AddEMail( ctx, 1, uId1, "The-1-" + uniqueMail, isPrimary: false ).ShouldBe( uId1, "The 1 is the primary mail." );
+                mails.AddEMail( ctx, 1, uId1, uniqueMail, false ).ShouldBe( uId1 );
+                mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ) .ShouldBe( "The-1-" + uniqueMail );
+                mails.AddEMail( ctx, 1, uId1, uniqueMail, true ).ShouldBe( uId1, "Change the primary!" );
+                mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ).ShouldBe( uniqueMail );
+                mails.Database.ExecuteScalar<int>( $"select count(*) from CK.tActorEMail where ActorId={uId1}" ).ShouldBe( 2 );
 
                 var uId2 = user.CreateUser( ctx, 1, Guid.NewGuid().ToString() );
-                mails.AddEMail( ctx, 1, uId2, "The-2-" + uniqueMail, false ).Should().Be( uId2, "The 2 is the primary mail." );
-                mails.AddEMail( ctx, 1, uId2, uniqueMail, true ).Should().Be( uId1, "Another user => the first user id is returned and nothing is done." );
+                mails.AddEMail( ctx, 1, uId2, "The-2-" + uniqueMail, false ).ShouldBe( uId2, "The 2 is the primary mail." );
+                mails.AddEMail( ctx, 1, uId2, uniqueMail, true ).ShouldBe( uId1, "Another user => the first user id is returned and nothing is done." );
                 // Nothing changed for both user.
-                mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ).Should().Be( uniqueMail );
-                mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId2}" ).Should().Be( "The-2-" + uniqueMail );
-                mails.Database.ExecuteScalar<int>( $"select count(*) from CK.tActorEMail where ActorId={uId2}" ).Should().Be( 1 );
+                mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ).ShouldBe( uniqueMail );
+                mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId2}" ).ShouldBe( "The-2-" + uniqueMail );
+                mails.Database.ExecuteScalar<int>( $"select count(*) from CK.tActorEMail where ActorId={uId2}" ).ShouldBe( 1 );
 
                 // Calling with avoidAmbiguousEMail = false: behavior depends on UK_CK_tActorEMail_EMail constraint.
                 bool isUnique = mails.Database.ExecuteScalar( "select object_id('CK.UK_CK_tActorEMail_EMail', 'UQ')" ) != DBNull.Value;
@@ -119,7 +119,7 @@ namespace CK.DB.Actor.ActorEMail.Tests
                     TestHelper.Monitor.Info( "CK.UK_CK_tActorEMail_EMail constraint found: EMail cannot be shared among users." );
                     // We cannot use the Database helpers here since the use a brand new SqlConnection each time.
                     // We must use the SqlCallContext.
-                    mails.Invoking( m => m.AddEMail( ctx, 1, uId2, uniqueMail, true, avoidAmbiguousEMail:false ) ).Should().Throw<SqlDetailedException>();
+                    mails.Invoking( m => m.AddEMail( ctx, 1, uId2, uniqueMail, true, avoidAmbiguousEMail:false ) ).ShouldThrow<SqlDetailedException>();
                     using( Util.CreateDisposableAction( () => ctx[mails.Database].ExecuteNonQuery( new SqlCommand( "rollback;" ) ) ) )
                     {
                         ctx[mails.Database].ExecuteNonQuery( new SqlCommand( "begin tran; alter table CK.tActorEMail drop constraint UK_CK_tActorEMail_EMail;" ) );
@@ -135,9 +135,9 @@ namespace CK.DB.Actor.ActorEMail.Tests
 
                 static void TestWithoutUnicityConstraint( ActorEMailTable mails, SqlStandardCallContext ctx, string uniqueMail, int uId2 )
                 {
-                    mails.AddEMail( ctx, 1, uId2, uniqueMail, true, avoidAmbiguousEMail: false ).Should().Be( uId2 );
-                    ctx[mails.Database].ExecuteScalar( new SqlCommand( $"select count(*) from CK.tActorEMail where ActorId={uId2}" ) ).Should().Be( 2 );
-                    ctx[mails.Database].ExecuteScalar( new SqlCommand( $"select count(*) from CK.tActorEMail where EMail='{uniqueMail}'" ) ).Should().Be( 2 );
+                    mails.AddEMail( ctx, 1, uId2, uniqueMail, true, avoidAmbiguousEMail: false ).ShouldBe( uId2 );
+                    ctx[mails.Database].ExecuteScalar( new SqlCommand( $"select count(*) from CK.tActorEMail where ActorId={uId2}" ) ).ShouldBe( 2 );
+                    ctx[mails.Database].ExecuteScalar( new SqlCommand( $"select count(*) from CK.tActorEMail where EMail='{uniqueMail}'" ) ).ShouldBe( 2 );
                 }
             }
         }
@@ -180,15 +180,15 @@ public class ActorEMailTests
         using( var ctx = new SqlStandardCallContext( TestHelper.Monitor ) )
         {
             mails.Database.ExecuteScalar( "select PrimaryEMail from CK.vUser where UserId=1" )
-                    .Should().Be( DBNull.Value );
+                    .ShouldBe( DBNull.Value );
 
             mails.AddEMail( ctx, 1, 1, "god@heaven.com", false );
             mails.Database.ExecuteScalar( "select PrimaryEMail from CK.vUser where UserId=1" )
-                    .Should().Be( "god@heaven.com" );
+                    .ShouldBe( "god@heaven.com" );
 
             mails.RemoveEMail( ctx, 1, 1, "god@heaven.com" );
             mails.Database.ExecuteScalar( "select PrimaryEMail from CK.vUser where UserId=1" )
-                    .Should().Be( DBNull.Value );
+                    .ShouldBe( DBNull.Value );
         }
     }
 
@@ -202,20 +202,20 @@ public class ActorEMailTests
             var gId = group.CreateGroup( ctx, 1 );
             mails.AddEMail( ctx, 1, gId, "mail@address.com", false );
             mails.Database.ExecuteScalar( $"select PrimaryEMail from CK.vGroup where GroupId={gId}" )
-                .Should().Be( "mail@address.com" );
+                .ShouldBe( "mail@address.com" );
 
             mails.AddEMail( ctx, 1, gId, "Val-mail@address.com", false );
             mails.Database.ExecuteScalar( $"select PrimaryEMail from CK.vGroup where GroupId={gId}" )
-                .Should().Be( "mail@address.com" );
+                .ShouldBe( "mail@address.com" );
 
             mails.AddEMail( ctx, 1, gId, "bad-mail@address.com", false );
             mails.Database.ExecuteScalar( $"select PrimaryEMail from CK.vGroup where GroupId={gId}" )
-                .Should().Be( "mail@address.com" );
+                .ShouldBe( "mail@address.com" );
 
 
             mails.ValidateEMail( ctx, 1, gId, "Val-mail@address.com" );
             mails.Database.ExecuteScalar( $"select PrimaryEMail from CK.vGroup where GroupId={gId}" )
-                .Should().Be( "Val-mail@address.com" );
+                .ShouldBe( "Val-mail@address.com" );
 
             group.DestroyGroup( ctx, 1, gId );
         }
@@ -234,7 +234,7 @@ public class ActorEMailTests
             mails.AddEMail( ctx, 1, uId, "3@a.com", true );
             mails.AddEMail( ctx, 1, uId, "4@a.com", false );
             mails.Database.ExecuteScalar( $"select PrimaryEMail from CK.vUser where UserId={uId}" )
-                .Should().Be( "3@a.com" );
+                .ShouldBe( "3@a.com" );
 
             mails.RemoveEMail( ctx, 1, uId, "3@a.com" );
             mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId}" )
@@ -255,20 +255,20 @@ public class ActorEMailTests
 
             var uniqueMail = $"{Guid.NewGuid():N}.sh@ared.com";
             var uId1 = user.CreateUser( ctx, 1, Guid.NewGuid().ToString() );
-            mails.AddEMail( ctx, 1, uId1, "The-1-" + uniqueMail, isPrimary: false ).Should().Be( uId1, "The 1 is the primary mail." );
-            mails.AddEMail( ctx, 1, uId1, uniqueMail, false ).Should().Be( uId1 );
-            mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ) .Should().Be( "The-1-" + uniqueMail );
-            mails.AddEMail( ctx, 1, uId1, uniqueMail, true ).Should().Be( uId1, "Change the primary!" );
-            mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ).Should().Be( uniqueMail );
-            mails.Database.ExecuteScalar<int>( $"select count(*) from CK.tActorEMail where ActorId={uId1}" ).Should().Be( 2 );
+            mails.AddEMail( ctx, 1, uId1, "The-1-" + uniqueMail, isPrimary: false ).ShouldBe( uId1, "The 1 is the primary mail." );
+            mails.AddEMail( ctx, 1, uId1, uniqueMail, false ).ShouldBe( uId1 );
+            mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ) .ShouldBe( "The-1-" + uniqueMail );
+            mails.AddEMail( ctx, 1, uId1, uniqueMail, true ).ShouldBe( uId1, "Change the primary!" );
+            mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ).ShouldBe( uniqueMail );
+            mails.Database.ExecuteScalar<int>( $"select count(*) from CK.tActorEMail where ActorId={uId1}" ).ShouldBe( 2 );
 
             var uId2 = user.CreateUser( ctx, 1, Guid.NewGuid().ToString() );
-            mails.AddEMail( ctx, 1, uId2, "The-2-" + uniqueMail, false ).Should().Be( uId2, "The 2 is the primary mail." );
-            mails.AddEMail( ctx, 1, uId2, uniqueMail, true ).Should().Be( uId1, "Another user => the first user id is returned and nothing is done." );
+            mails.AddEMail( ctx, 1, uId2, "The-2-" + uniqueMail, false ).ShouldBe( uId2, "The 2 is the primary mail." );
+            mails.AddEMail( ctx, 1, uId2, uniqueMail, true ).ShouldBe( uId1, "Another user => the first user id is returned and nothing is done." );
             // Nothing changed for both user.
-            mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ).Should().Be( uniqueMail );
-            mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId2}" ).Should().Be( "The-2-" + uniqueMail );
-            mails.Database.ExecuteScalar<int>( $"select count(*) from CK.tActorEMail where ActorId={uId2}" ).Should().Be( 1 );
+            mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ).ShouldBe( uniqueMail );
+            mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId2}" ).ShouldBe( "The-2-" + uniqueMail );
+            mails.Database.ExecuteScalar<int>( $"select count(*) from CK.tActorEMail where ActorId={uId2}" ).ShouldBe( 1 );
 
             // Calling with avoidAmbiguousEMail = false: behavior depends on UK_CK_tActorEMail_EMail constraint.
             bool isUnique = mails.Database.ExecuteScalar( "select object_id('CK.UK_CK_tActorEMail_EMail', 'UQ')" ) != DBNull.Value;
@@ -277,7 +277,7 @@ public class ActorEMailTests
                 TestHelper.Monitor.Info( "CK.UK_CK_tActorEMail_EMail constraint found: EMail cannot be shared among users." );
                 // We cannot use the Database helpers here since the use a brand new SqlConnection each time.
                 // We must use the SqlCallContext.
-                mails.Invoking( m => m.AddEMail( ctx, 1, uId2, uniqueMail, true, avoidAmbiguousEMail:false ) ).Should().Throw<SqlDetailedException>();
+                mails.Invoking( m => m.AddEMail( ctx, 1, uId2, uniqueMail, true, avoidAmbiguousEMail:false ) ).ShouldThrow<SqlDetailedException>();
                 using( Util.CreateDisposableAction( () => ctx[mails.Database].ExecuteNonQuery( new SqlCommand( "rollback;" ) ) ) )
                 {
                     ctx[mails.Database].ExecuteNonQuery( new SqlCommand( "begin tran; alter table CK.tActorEMail drop constraint UK_CK_tActorEMail_EMail;" ) );
@@ -293,9 +293,9 @@ public class ActorEMailTests
 
             static void TestWithoutUnicityConstraint( ActorEMailTable mails, SqlStandardCallContext ctx, string uniqueMail, int uId2 )
             {
-                mails.AddEMail( ctx, 1, uId2, uniqueMail, true, avoidAmbiguousEMail: false ).Should().Be( uId2 );
-                ctx[mails.Database].ExecuteScalar( new SqlCommand( $"select count(*) from CK.tActorEMail where ActorId={uId2}" ) ).Should().Be( 2 );
-                ctx[mails.Database].ExecuteScalar( new SqlCommand( $"select count(*) from CK.tActorEMail where EMail='{uniqueMail}'" ) ).Should().Be( 2 );
+                mails.AddEMail( ctx, 1, uId2, uniqueMail, true, avoidAmbiguousEMail: false ).ShouldBe( uId2 );
+                ctx[mails.Database].ExecuteScalar( new SqlCommand( $"select count(*) from CK.tActorEMail where ActorId={uId2}" ) ).ShouldBe( 2 );
+                ctx[mails.Database].ExecuteScalar( new SqlCommand( $"select count(*) from CK.tActorEMail where EMail='{uniqueMail}'" ) ).ShouldBe( 2 );
             }
         }
     }
@@ -336,15 +336,15 @@ public class ActorEMailTests
         using( var ctx = new SqlStandardCallContext( TestHelper.Monitor ) )
         {
             mails.Database.ExecuteScalar( "select PrimaryEMail from CK.vUser where UserId=1" )
-                    .Should().Be( DBNull.Value );
+                    .ShouldBe( DBNull.Value );
 
             mails.AddEMail( ctx, 1, 1, "god@heaven.com", false );
             mails.Database.ExecuteScalar( "select PrimaryEMail from CK.vUser where UserId=1" )
-                    .Should().Be( "god@heaven.com" );
+                    .ShouldBe( "god@heaven.com" );
 
             mails.RemoveEMail( ctx, 1, 1, "god@heaven.com" );
             mails.Database.ExecuteScalar( "select PrimaryEMail from CK.vUser where UserId=1" )
-                    .Should().Be( DBNull.Value );
+                    .ShouldBe( DBNull.Value );
         }
     }
 
@@ -358,20 +358,20 @@ public class ActorEMailTests
             var gId = group.CreateGroup( ctx, 1 );
             mails.AddEMail( ctx, 1, gId, "mail@address.com", false );
             mails.Database.ExecuteScalar( $"select PrimaryEMail from CK.vGroup where GroupId={gId}" )
-                .Should().Be( "mail@address.com" );
+                .ShouldBe( "mail@address.com" );
 
             mails.AddEMail( ctx, 1, gId, "Val-mail@address.com", false );
             mails.Database.ExecuteScalar( $"select PrimaryEMail from CK.vGroup where GroupId={gId}" )
-                .Should().Be( "mail@address.com" );
+                .ShouldBe( "mail@address.com" );
 
             mails.AddEMail( ctx, 1, gId, "bad-mail@address.com", false );
             mails.Database.ExecuteScalar( $"select PrimaryEMail from CK.vGroup where GroupId={gId}" )
-                .Should().Be( "mail@address.com" );
+                .ShouldBe( "mail@address.com" );
 
 
             mails.ValidateEMail( ctx, 1, gId, "Val-mail@address.com" );
             mails.Database.ExecuteScalar( $"select PrimaryEMail from CK.vGroup where GroupId={gId}" )
-                .Should().Be( "Val-mail@address.com" );
+                .ShouldBe( "Val-mail@address.com" );
 
             group.DestroyGroup( ctx, 1, gId );
         }
@@ -390,11 +390,11 @@ public class ActorEMailTests
             mails.AddEMail( ctx, 1, uId, "3@a.com", true );
             mails.AddEMail( ctx, 1, uId, "4@a.com", false );
             mails.Database.ExecuteScalar( $"select PrimaryEMail from CK.vUser where UserId={uId}" )
-                .Should().Be( "3@a.com" );
+                .ShouldBe( "3@a.com" );
 
             mails.RemoveEMail( ctx, 1, uId, "3@a.com" );
             mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId}" )
-                .Should().Match( m => m == "1@a.com" || m == "2@a.com" || m == "4@a.com" );
+                .ShouldMatch( m => m == "1@a.com" || m == "2@a.com" || m == "4@a.com" );
             user.DestroyUser( ctx, 1, uId );
         }
     }
@@ -411,20 +411,20 @@ public class ActorEMailTests
 
             var uniqueMail = $"{Guid.NewGuid():N}.sh@ared.com";
             var uId1 = user.CreateUser( ctx, 1, Guid.NewGuid().ToString() );
-            mails.AddEMail( ctx, 1, uId1, "The-1-" + uniqueMail, isPrimary: false ).Should().Be( uId1, "The 1 is the primary mail." );
-            mails.AddEMail( ctx, 1, uId1, uniqueMail, false ).Should().Be( uId1 );
-            mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ).Should().Be( "The-1-" + uniqueMail );
-            mails.AddEMail( ctx, 1, uId1, uniqueMail, true ).Should().Be( uId1, "Change the primary!" );
-            mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ).Should().Be( uniqueMail );
-            mails.Database.ExecuteScalar<int>( $"select count(*) from CK.tActorEMail where ActorId={uId1}" ).Should().Be( 2 );
+            mails.AddEMail( ctx, 1, uId1, "The-1-" + uniqueMail, isPrimary: false ).ShouldBe( uId1, "The 1 is the primary mail." );
+            mails.AddEMail( ctx, 1, uId1, uniqueMail, false ).ShouldBe( uId1 );
+            mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ).ShouldBe( "The-1-" + uniqueMail );
+            mails.AddEMail( ctx, 1, uId1, uniqueMail, true ).ShouldBe( uId1, "Change the primary!" );
+            mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ).ShouldBe( uniqueMail );
+            mails.Database.ExecuteScalar<int>( $"select count(*) from CK.tActorEMail where ActorId={uId1}" ).ShouldBe( 2 );
 
             var uId2 = user.CreateUser( ctx, 1, Guid.NewGuid().ToString() );
-            mails.AddEMail( ctx, 1, uId2, "The-2-" + uniqueMail, false ).Should().Be( uId2, "The 2 is the primary mail." );
-            mails.AddEMail( ctx, 1, uId2, uniqueMail, true ).Should().Be( uId1, "Another user => the first user id is returned and nothing is done." );
+            mails.AddEMail( ctx, 1, uId2, "The-2-" + uniqueMail, false ).ShouldBe( uId2, "The 2 is the primary mail." );
+            mails.AddEMail( ctx, 1, uId2, uniqueMail, true ).ShouldBe( uId1, "Another user => the first user id is returned and nothing is done." );
             // Nothing changed for both user.
-            mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ).Should().Be( uniqueMail );
-            mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId2}" ).Should().Be( "The-2-" + uniqueMail );
-            mails.Database.ExecuteScalar<int>( $"select count(*) from CK.tActorEMail where ActorId={uId2}" ).Should().Be( 1 );
+            mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId1}" ).ShouldBe( uniqueMail );
+            mails.Database.ExecuteScalar<string>( $"select PrimaryEMail from CK.vUser where UserId={uId2}" ).ShouldBe( "The-2-" + uniqueMail );
+            mails.Database.ExecuteScalar<int>( $"select count(*) from CK.tActorEMail where ActorId={uId2}" ).ShouldBe( 1 );
 
             // Calling with avoidAmbiguousEMail = false: behavior depends on UK_CK_tActorEMail_EMail constraint.
             bool isUnique = mails.Database.ExecuteScalar( "select object_id('CK.UK_CK_tActorEMail_EMail', 'UQ')" ) != DBNull.Value;
@@ -433,7 +433,7 @@ public class ActorEMailTests
                 TestHelper.Monitor.Info( "CK.UK_CK_tActorEMail_EMail constraint found: EMail cannot be shared among users." );
                 // We cannot use the Database helpers here since the use a brand new SqlConnection each time.
                 // We must use the SqlCallContext.
-                mails.Invoking( m => m.AddEMail( ctx, 1, uId2, uniqueMail, true, avoidAmbiguousEMail: false ) ).Should().Throw<SqlDetailedException>();
+                Util.Invokable( () => mails.AddEMail( ctx, 1, uId2, uniqueMail, true, avoidAmbiguousEMail: false ) ).ShouldThrow<SqlDetailedException>();
                 using( Util.CreateDisposableAction( () => ctx[mails.Database].ExecuteNonQuery( new SqlCommand( "rollback;" ) ) ) )
                 {
                     ctx[mails.Database].ExecuteNonQuery( new SqlCommand( "begin tran; alter table CK.tActorEMail drop constraint UK_CK_tActorEMail_EMail;" ) );
@@ -449,9 +449,9 @@ public class ActorEMailTests
 
             static void TestWithoutUnicityConstraint( ActorEMailTable mails, SqlStandardCallContext ctx, string uniqueMail, int uId2 )
             {
-                mails.AddEMail( ctx, 1, uId2, uniqueMail, true, avoidAmbiguousEMail: false ).Should().Be( uId2 );
-                ctx[mails.Database].ExecuteScalar( new SqlCommand( $"select count(*) from CK.tActorEMail where ActorId={uId2}" ) ).Should().Be( 2 );
-                ctx[mails.Database].ExecuteScalar( new SqlCommand( $"select count(*) from CK.tActorEMail where EMail='{uniqueMail}'" ) ).Should().Be( 2 );
+                mails.AddEMail( ctx, 1, uId2, uniqueMail, true, avoidAmbiguousEMail: false ).ShouldBe( uId2 );
+                ctx[mails.Database].ExecuteScalar( new SqlCommand( $"select count(*) from CK.tActorEMail where ActorId={uId2}" ) ).ShouldBe( 2 );
+                ctx[mails.Database].ExecuteScalar( new SqlCommand( $"select count(*) from CK.tActorEMail where EMail='{uniqueMail}'" ) ).ShouldBe( 2 );
             }
         }
     }
