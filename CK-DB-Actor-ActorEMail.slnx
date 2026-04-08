@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path="appveyor.yml" />
+    <File Path="Directory.Build.props" />
+    <File Path="NuGet.config" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/CK.DB.Actor.ActorEMail.NonUnique.Tests/CK.DB.Actor.ActorEMail.NonUnique.Tests.csproj" />
+    <Project Path="Tests/CK.DB.Actor.ActorEMail.Tests/CK.DB.Actor.ActorEMail.Tests.csproj" />
+  </Folder>
+  <Project Path="CK.DB.Actor.ActorEMail.NonUnique/CK.DB.Actor.ActorEMail.NonUnique.csproj" />
+  <Project Path="CK.DB.Actor.ActorEMail/CK.DB.Actor.ActorEMail.csproj" />
+</Solution>
